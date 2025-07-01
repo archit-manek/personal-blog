@@ -13,5 +13,7 @@ theme = "PaperMod"
   ]
 
   # Resume page
-  ShowResume = true
-  ResumeURL = "/resume.pdf"
+[[menu.main]]
+  name = "Resume"
+  url = "/Resume_June_25.pdf"
+  weight = 20
