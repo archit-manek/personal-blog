@@ -17,3 +17,4 @@ theme = "PaperMod"
   name = "Resume"
   url = "/Resume_June_25.pdf"
   weight = 20
+  identifier = "resume"
