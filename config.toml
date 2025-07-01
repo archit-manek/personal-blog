@@ -1,4 +1,17 @@
 baseURL = 'https://example.org/'
 languageCode = 'en-us'
-title = 'My New Hugo Site'
+title = 'Archit Manek'
 theme = "PaperMod"
+
+[params]
+  homeInfoParams = { Title = "Welcome to My Football AI Blog", Content = "Exploring how machines see football and how we can make them smarter about it." }
+
+  # Social Icons
+  socialIcons = [
+    { name = "github", url = "https://github.com/archit-manek" },
+    { name = "twitter", url = "https://twitter.com/yourhandle" }
+  ]
+
+  # Resume page
+  ShowResume = true
+  ResumeURL = "/resume.pdf"
