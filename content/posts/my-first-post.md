@@ -1,5 +1,5 @@
 +++
-date = '2025-06-30T16:06:18-07:00'
+date = '2025-07-11T16:06:18-07:00'
 draft = false
 title = 'Football Data Pipeline: Bronze Layer'
 +++
