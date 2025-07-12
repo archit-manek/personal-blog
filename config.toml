@@ -4,7 +4,7 @@ title = 'Archit Manek'
 theme = "PaperMod"
 
 [params]
-  homeInfoParams = { Title = "Welcome to My Football AI Blog", Content = "Exploring how machines see football and how we can make them smarter about it." }
+  homeInfoParams = { Title = "Welcome to My AI Blog", Content = "Exploring how machines see sports and how we can make them smarter about it." }
 
   # Social Icons
   socialIcons = [
