@@ -243,6 +243,9 @@ I wasted time switching to the StatsBomb API, thinking I needed “live” data.
 
 My first Bronze layer was built in Pandas, but large-scale JSON parsing and Parquet writes were slow. Moving to Polars halved the runtime and made batch processing much smoother.
 
+### Work on Data You Actually Care About
+One of the biggest advantages was working with football data - a subject I genuinely love. It made the technical learning curve feel less intimidating, kept me motivated, and made the process much more fun. If you’re building your own projects, try to pick data you’re passionate about; it really does make a huge difference.
+
 ## Next Steps: Silver Layer
 
 The Bronze layer provides the foundation, but the real value comes in the Silver layer where we:
