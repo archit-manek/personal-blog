@@ -18,3 +18,10 @@ theme = "PaperMod"
   url = "/Resume_July_2025.pdf"
   weight = 20
   identifier = "resume"
+
+  # Archive page
+[[menu.main]]
+  name = "Archive"
+  url = "/archives/"
+  weight = 30
+  identifier = "archives"
