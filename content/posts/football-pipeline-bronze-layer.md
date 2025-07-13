@@ -60,13 +60,13 @@ Here’s the folder structure I use to separate raw, untouched JSON data from th
 
 ```
 data/
-├── raw/                    # Source data (JSON files)
+├── raw/
 │   ├── competitions.json
 │   ├── matches/
 │   ├── events/
 │   ├── lineups/
 │   └── three-sixty/
-└── bronze/                 # Bronze layer (Parquet files)
+└── bronze/
     ├── competitions/
     ├── matches/
     ├── events/
