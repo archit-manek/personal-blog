@@ -12,6 +12,13 @@ theme = "PaperMod"
     { name = "twitter", url = "https://x.com/archit_manek" }
   ]
 
+  # Home page
+[[menu.main]]
+  name = "Home"
+  url = "/"
+  weight = 10
+  identifier = "home"
+
   # Resume page
 [[menu.main]]
   name = "Resume"
