@@ -25,3 +25,17 @@ theme = "PaperMod"
   url = "/archives/"
   weight = 30
   identifier = "archives"
+
+  # Categories page
+[[menu.main]]
+  name = "Categories"
+  url = "/categories/"
+  weight = 40
+  identifier = "categories"
+
+  # Tags page
+[[menu.main]]
+  name = "Tags"
+  url = "/tags/"
+  weight = 50
+  identifier = "tags"

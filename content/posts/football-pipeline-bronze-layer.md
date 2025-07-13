@@ -2,6 +2,8 @@
 date = '2025-07-11T16:06:18-07:00'
 draft = false
 title = 'Football Data Pipeline: Bronze Layer'
+categories = ['Data Engineering', 'Football Analytics']
+tags = ['python', 'polars', 'data-pipeline', 'statsbomb', 'medallion-architecture', 'parquet', 'football']
 +++
 
 ## Contents
