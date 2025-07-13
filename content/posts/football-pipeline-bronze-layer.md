@@ -58,7 +58,7 @@ Football data is notoriously complex. Unlike traditional business data, football
 
 Here’s the folder structure I use to separate raw, untouched JSON data from the processed, schema enforced Parquet files in the Bronze layer. This organization makes it easy to keep track of what’s been ingested, and lays the groundwork for the Silver and Gold layers later on. Makes adding new competitions or sources trivial later.
 
-```
+```bash
 data/
 ├── raw/
 │   ├── competitions.json
