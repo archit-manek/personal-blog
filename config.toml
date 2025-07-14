@@ -4,12 +4,14 @@ title = 'Archit Manek'
 theme = "PaperMod"
 
 [params]
-  homeInfoParams = { Title = "Welcome to My Blog", Content = "Exploring how machines see the world and how we can make them smarter about it." }
+  homeInfoParams = { Title = "Football ML", Content = "Exploring football through the lens of machine learning, AI, and data." }
 
   # Social Icons
   socialIcons = [
     { name = "github", url = "https://github.com/archit-manek" },
-    { name = "twitter", url = "https://x.com/archit_manek" }
+    { name = "twitter", url = "https://x.com/archit_manek" },
+    { name = "linkedin", url = "https://www.linkedin.com/in/architmanek/" },
+    { name = "substack", url = "https://architmanek.substack.com/" }
   ]
 
   # Home page
