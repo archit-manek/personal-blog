@@ -9,7 +9,7 @@ theme = "PaperMod"
   # Social Icons
   socialIcons = [
     { name = "github", url = "https://github.com/archit-manek" },
-    { name = "twitter", url = "https://x.com/archit_manek" },
+    { name = "x", url = "https://x.com/archit_manek" },
     { name = "linkedin", url = "https://www.linkedin.com/in/architmanek/" },
     { name = "substack", url = "https://architmanek.substack.com/" }
   ]
