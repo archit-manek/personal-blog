@@ -120,7 +120,16 @@ Events are the heart of football analytics. Each match produces a JSON file cont
 
 ## Key Design Decisions
 
-### 1. File Format: Parquet over JSON
+### 1. Pandas vs Polars [Official Docs](https://docs.pola.rs/user-guide/migration/pandas/)
+
+When transitioning from Pandas to Polars, I noticed immediate improvements in speed and memory efficiency. Polars made large-scale file ingestion and transformation  faster.
+
+However, my current implementation only leverages a portion of what Polars can offer. While I benefit from enhanced file I/O and straightforward transformations, I have yet to fully utilize Polars’ advanced capabilities: lazy evaluation, parallel processing, streaming, and advanced expressions. Unlike Pandas, which processes each step eagerly and typically in a single thread, Polars can optimize entire transformation pipelines and execute them in parallel—resulting in significant performance gains, especially for complex or large-scale workflows.
+
+In summary, even limited use of Polars delivers substantial benefits over Pandas for large football analytics projects. As I continue to develop this pipeline, exploring Polars’ advanced features will be key to unlocking further scalability and efficiency.
+
+
+### 2. File Format: Parquet over JSON
 
 I chose Parquet for the Bronze layer for several reasons:
 
@@ -129,7 +138,7 @@ I chose Parquet for the Bronze layer for several reasons:
 - **Schema enforcement**: Maintains data types and structure
 - **Performance**: Faster read/write operations for large datasets
 
-### 2. Naming Conventions
+### 3. Naming Conventions
 
 Consistent naming is crucial for data discovery and automation:
 
@@ -138,7 +147,7 @@ Consistent naming is crucial for data discovery and automation:
 - **Lineups**: `lineups_{match_id}.parquet`
 - **360° Events**: `events_360_{match_id}.parquet`
 
-### 3. Idempotent Operations
+### 4. Idempotent Operations
 
 The ingestion functions are designed to be idempotent AND intelligent - they only reprocess files when the source data has actually changed:
 
@@ -159,7 +168,7 @@ def is_source_newer(source_path: Path, output_path: Path) -> bool:
 This ensures the pipeline can be safely re-run for incremental updates or error recovery.
 
 
-### 4. Error Handling
+### 5. Error Handling
 
 Robust error handling prevents pipeline failures, an example from ingesting events:
 
@@ -193,8 +202,6 @@ The Bronze layer handles substantial data volumes:
 
 
 When I first started, I cloned the StatsBomb open data repo locally and worked with those files. At some point, I decided to “upgrade” and pull everything directly from the StatsBomb API, thinking it would keep my data always up-to-date. But in practice, this was a pain because downloads were *so* slow, and it didn’t actually add much value for a historical analytics project. So I switched back to using local files, which turned out to be much faster and more reliable. Lesson learned: for most projects, local raw files are plenty good, and much easier to work with.
-
-I initially built my ingestion pipeline using Pandas, but once I started processing the full StatsBomb dataset, performance was visibly slow - it took about 2 minutes to process just the events data. After switching to [Polars](https://pola.rs/) , my processing time dropped by around 50%. If you’re working with large or complex data, I highly recommend giving Polars a try, it made a huge difference in both speed and memory usage for this project.
 
 ## Logging and Monitoring
 
