@@ -120,11 +120,11 @@ Events are the heart of football analytics. Each match produces a JSON file cont
 
 ## Key Design Decisions
 
-### 1. Pandas vs Polars [Official Docs](https://docs.pola.rs/user-guide/migration/pandas/)
+### 1. Pandas vs Polars [(Official Docs)](https://docs.pola.rs/user-guide/migration/pandas/)
 
 When transitioning from Pandas to Polars, I noticed immediate improvements in speed and memory efficiency. Polars made large-scale file ingestion and transformation  faster.
 
-However, my current implementation only leverages a portion of what Polars can offer. While I benefit from enhanced file I/O and straightforward transformations, I have yet to fully utilize Polars’ advanced capabilities: lazy evaluation, parallel processing, streaming, and advanced expressions. Unlike Pandas, which processes each step eagerly and typically in a single thread, Polars can optimize entire transformation pipelines and execute them in parallel—resulting in significant performance gains, especially for complex or large-scale workflows.
+However, my current implementation only leverages a portion of what Polars can offer. While I benefit from enhanced file I/O and straightforward transformations, I have yet to fully utilize Polars’ capabilities: lazy evaluation, parallel processing, streaming, and advanced expressions. Unlike Pandas, which processes each step eagerly and typically in a single thread, Polars can optimize entire transformation pipelines and execute them in parallel, resulting in significant performance gains, especially for complex or large-scale workflows.
 
 In summary, even limited use of Polars delivers substantial benefits over Pandas for large football analytics projects. As I continue to develop this pipeline, exploring Polars’ advanced features will be key to unlocking further scalability and efficiency.
 
