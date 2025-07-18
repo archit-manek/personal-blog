@@ -16,7 +16,6 @@ tags = ['python', 'polars', 'pandas', 'data-pipeline', 'statsbomb', 'medallion-a
 - [Logging and Monitoring](#logging-and-monitoring)
 - [Lessons Learned](#lessons-learned)
 - [Next Steps: Silver Layer](#next-steps-silver-layer)
-- [Conclusion](#conclusion)
 
 ## Project & Connect
 
