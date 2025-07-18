@@ -15,6 +15,21 @@ theme = "PaperMod"
     { name = "substack", url = "https://architmanek.substack.com/" }
   ]
 
+  # Giscus Comments Configuration
+  [params.giscus]
+    repo = "archit-manek/personal-blog"
+    repoId = "R_kgDOPEo29g"
+    category = "Announcements"
+    categoryId = "DIC_kwDOPEo29s4CtKEW"
+    mapping = "pathname"
+    strict = "0"
+    reactionsEnabled = "1"
+    emitMetadata = "0"
+    inputPosition = "bottom"
+    theme = "preferred_color_scheme"
+    lang = "en"
+    loading = "lazy"
+
   # Home page
 [[menu.main]]
   name = "Home"

@@ -4,6 +4,7 @@ draft = false
 title = 'Football Data Pipeline: Bronze Layer'
 categories = ['Data Engineering', 'Football Analytics']
 tags = ['python', 'polars', 'pandas', 'data-pipeline', 'statsbomb', 'medallion-architecture', 'parquet', 'football']
+comments = true
 +++
 
 ## Contents
