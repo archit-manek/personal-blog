@@ -4,6 +4,7 @@ title = 'Archit Manek'
 theme = "PaperMod"
 
 [params]
+  env = "production"
   homeInfoParams = { Title = "Football ML", Content = "Exploring football through the lens of machine learning, AI, and data." }
 
   # Social Icons

@@ -95,7 +95,7 @@ data/
         └── mappings/
 ```
 
-This dual-source architecture demonstrates handling heterogeneous data formats (JSON, CSV) and vendors (StatsBomb, HUDL) within a unified pipeline, while maintaining clear separation and consistent processing patterns.
+This multi-source architecture demonstrates handling heterogeneous data formats (JSON, CSV) and vendors (StatsBomb, HUDL) within a unified pipeline, while maintaining clear separation and consistent processing patterns.
 
 ## The Ingestion Pipeline
 
@@ -257,7 +257,7 @@ def normalize_column_names(df: pl.DataFrame) -> pl.DataFrame:
 
 ## Logging and Monitoring
 
-Comprehensive logging ensures visibility into the ingestion process:
+Comprehensive logging ensures visibility into the ingestion process, an example:
 
 ```python
 # Open Data logging
@@ -269,9 +269,6 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
-
-# J1 League logging
-logger = setup_logger("logs/bronze/j1_league_bronze.log", "j1_league_bronze")
 ```
 
 The logging captures:
