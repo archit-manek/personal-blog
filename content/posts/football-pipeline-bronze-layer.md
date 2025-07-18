@@ -3,7 +3,7 @@ date = '2025-07-11T16:06:18-07:00'
 draft = false
 title = 'Football Data Pipeline: Bronze Layer'
 categories = ['Data Engineering', 'Football Analytics']
-tags = ['python', 'polars', 'data-pipeline', 'statsbomb', 'medallion-architecture', 'parquet', 'football']
+tags = ['python', 'polars', 'pandas', 'data-pipeline', 'statsbomb', 'medallion-architecture', 'parquet', 'football']
 +++
 
 ## Contents
@@ -12,10 +12,12 @@ tags = ['python', 'polars', 'data-pipeline', 'statsbomb', 'medallion-architectur
 - [Architecture Overview](#architecture-overview)
 - [The Ingestion Pipeline](#the-ingestion-pipeline)
 - [Key Design Decisions](#key-design-decisions)
+- [Schema Standardization Challenge](#schema-standardization-challenge)
+- [Data Type Complexity](#data-type-complexity)
 - [Data Volume and Performance](#data-volume-and-performance)
 - [Logging and Monitoring](#logging-and-monitoring)
 - [Benefits of This Approach](#benefits-of-this-approach)
-- [What I’d Do Differently (Lessons Learned)](#what-id-do-differently-lessons-learned)
+- [What I'd Do Differently (Lessons Learned)](#what-id-do-differently-lessons-learned)
 - [Next Steps: Silver Layer](#next-steps-silver-layer)
 - [Conclusion](#conclusion)
 
@@ -28,22 +30,22 @@ tags = ['python', 'polars', 'data-pipeline', 'statsbomb', 'medallion-architectur
 
 # Building a Robust Bronze Layer: The Foundation of Football Analytics
 
-*How I designed a scalable data ingestion system for StatsBomb football data using Python, Polars, and the medallion architecture*
+*How I designed a scalable data ingestion system for multi-source football data using Python, Polars, Pandas, and the medallion architecture*
 
 ## Why I'm Building This
 
-I love football. After years of watching, debating tactics, and obsessing over matches, I wanted to go deeper - not just as a fan, but as someone who can analyze the game with real data. For me, learning data engineering and machine learning *through* football made the technical learning curve way less intimidating and a lot more fun. This project was also my way of scratching that itch: whether it’s analyzing tactics, understanding player performance, or exploring questions around injury prevention.
+I love football. After years of watching, debating tactics, and obsessing over matches, I wanted to go deeper - not just as a fan, but as someone who can analyze the game with real data. For me, learning data engineering and machine learning *through* football made the technical learning curve way less intimidating and a lot more fun. This project was also my way of scratching that itch: whether it's analyzing tactics, understanding player performance, or exploring questions around injury prevention.
 
-I set out to build a robust data pipeline for football analytics, from ingesting raw StatsBomb data to producing efficient, clean, structured datasets for analysis and modeling. My goal was to create a system flexible enough to support any question from tactics to scouting to performance analysis. In the future, I plan to incorporate more data sources to widen the possibilities even further.
+I set out to build a robust data pipeline for football analytics, from ingesting raw multi-source data to producing efficient, clean, structured datasets for analysis and modeling. My goal was to create a system flexible enough to support any question from tactics to scouting to performance analysis, while handling the complexity of multiple data vendors and formats.
 
-In football analytics, data quality is everything. Before you can build sophisticated models or extract tactical insights, you need a solid foundation for ingesting, storing, and organizing your data. That’s where the Bronze layer comes in - the first stage of the medallion architecture, transforming raw, messy data into a structured, queryable format.
+In football analytics, data quality is everything. Before you can build sophisticated models or extract tactical insights, you need a solid foundation for ingesting, storing, and organizing your data. That's where the Bronze layer comes in - the first stage of the medallion architecture, transforming raw, messy data into a structured, queryable format.
 
 *A quick note for the uninitiated:*
 A [medallion architecture](https://www.databricks.com/glossary/medallion-architecture) is a data design pattern for logically organizing data into layers (Bronze, Silver, Gold), each building on the last.
 
-Honestly, I first explored the medallion architecture because I had a job interview at a finance company that used it, so it seemed like a practical way to learn something relevant. But as I started working with it, I quickly saw how well it fit the challenges of structuring football data. The medallion approach naturally enforces a clean separation between raw, intermediate, and analysis ready datasets, which makes the pipeline easier to maintain, test, and extend. My main priority was to learn by building, get something working quickly, and iterate from there. So far, benefits like clear data lineage, easier debugging, and flexibility to add new sources have made it a great fit for my goals. I’m always open to changing the approach if the project’s needs evolve, but the medallion pattern has proven both practical and scalable for this work.
+Honestly, I first explored the medallion architecture because I had a job interview at a finance company that used it, so it seemed like a practical way to learn something relevant. But as I started working with it, I quickly saw how well it fit the challenges of structuring football data. The medallion approach naturally enforces a clean separation between raw, intermediate, and analysis ready datasets, which makes the pipeline easier to maintain, test, and extend. My main priority was to learn by building, get something working quickly, and iterate from there. So far, benefits like clear data lineage, easier debugging, and flexibility to add new sources have made it a great fit for my goals. I'm always open to changing the approach if the project's needs evolve, but the medallion pattern has proven both practical and scalable for this work.
 
-In this post, I’ll walk through how I built a comprehensive Bronze layer for StatsBomb football data, handling everything from match events to 360° event snapshots, across multiple competitions and seasons.
+In this post, I'll walk through how I built a comprehensive Bronze layer for multi-source football data, handling everything from StatsBomb community data to professional J1 League data with HUDL tracking, demonstrating how to manage heterogeneous data sources within a unified pipeline.
 
 ## The Challenge: Heterogeneous Football Data
 
@@ -51,49 +53,62 @@ Football data is notoriously complex. Unlike traditional business data, football
 
 - **Multi-dimensional events**: Every event (pass, shot, etc.) includes spatial (x, y) coordinates, timestamps, and rich contextual info
 - **Nested JSON structures**: StatsBomb's rich data format includes deeply nested objects for players, teams, tactics, and event details
-- **Large-scale data**: A single match can contain thousands of events, and we're processing hundreds of matches across multiple competitions
-- **360° tracking data**: Positional data for all 22 players plus the ball, captured at key events (not continuous tracking).
-- **Temporal relationships**: Events are chronologically ordered, but analysts often need to group or aggregate them (using the possession field, etc.) to reconstruct possessions, phases of play, or other temporal sequences for deeper analysis.
-
+- **Large-scale data**: A single match can contain thousands of events, and we're processing thousands of matches across multiple competitions
+- **Multiple data sources**: StatsBomb, HUDL, CSV mappings - each with different formats and schemas
+- **360° tracking data**: Positional data for all 22 players plus the ball, captured at key events (not continuous tracking)
+- **Temporal relationships**: Events are chronologically ordered, but analysts often need to group or aggregate them (using the possession field, etc.) to reconstruct possessions, phases of play, or other temporal sequences for deeper analysis
+- **Schema variability**: Different event types can have 25-47 columns each, creating extreme variability within datasets
 
 ## Architecture Overview
 
-Here’s the folder structure I use to separate raw, untouched JSON data from the processed, schema enforced Parquet files in the Bronze layer. This organization makes it easy to keep track of what’s been ingested, and lays the groundwork for the Silver and Gold layers later on. Makes adding new competitions or sources trivial later.
+The pipeline handles **two distinct data sources** with different characteristics, demonstrating how to manage heterogeneous data within a unified medallion architecture:
 
+**1. Open Data (StatsBomb Community Data)**
 ```bash
 data/
-├── raw/
-│   ├── competitions.json
-│   ├── matches/
-│   ├── events/
-│   ├── lineups/
-│   └── three-sixty/
+├── landing/
+│   └── open_data/
+│       ├── competitions/
+│       ├── matches/
+│       ├── events/
+│       ├── lineups/
+│       └── three-sixty/
 └── bronze/
-    ├── competitions/
-    ├── matches/
-    ├── events/
-    ├── lineups/
-    └── 360_events/
+    └── open_data/
+        ├── competitions/
+        ├── matches/
+        ├── events/
+        ├── lineups/
+        └── 360_events/
 ```
+
+**2. J1 League (Multi-Source Professional Data)**
+```bash
+data/
+├── landing/
+│   └── j1_league/
+│       ├── sb-matches/          # StatsBomb format
+│       ├── sb-events/           # StatsBomb format  
+│       ├── hudl-physical/       # HUDL physical data
+│       └── mappings/            # CSV mapping files
+└── bronze/
+    └── j1_league/
+        ├── matches/
+        ├── events/
+        ├── physical/
+        └── mappings/
+```
+
+This dual-source architecture demonstrates handling heterogeneous data formats (JSON, CSV) and vendors (StatsBomb, HUDL) within a unified pipeline, while maintaining clear separation and consistent processing patterns.
 
 ## The Ingestion Pipeline
 
-### 1. Data Source Structure
+The Bronze layer processes **two distinct data sources** with specialized ingestion functions:
 
-The raw data comes from StatsBomb's [open-data](https://github.com/statsbomb/open-data) repo which is in JSON format, organized by:
-
-- **Competitions**: Metadata about leagues, tournaments, and seasons
-- **Matches**: Game level information including teams, scores, and dates
-- **Events**: Detailed play-by-play data with spatial coordinates
-- **Lineups**: Player formations and tactical information
-- **360° Events**: Advanced positional tracking data
-
-### 2. Core Ingestion Functions
-
-The Bronze layer consists of five specialized ingestion functions, each handling a specific data type:
-
+### Open Data Pipeline
 ```python
-def bronze_ingest():
+def open_data_ingest():
+    """Process StatsBomb open-data repo"""
     ingest_competitions_local()
     ingest_matches_local()
     ingest_lineups_local()
@@ -101,32 +116,49 @@ def bronze_ingest():
     ingest_360_events_local()
 ```
 
-#### Events Ingestion Example
+### J1 League Pipeline
 ```python
-def ingest_events_local():
-    events_dir = Path("data/raw/events")
-    bronze_events_dir = BRONZE_DIR_EVENTS
-    for json_file in events_dir.glob("*.json"):
-        match_id = json_file.stem
-        events_path = bronze_events_dir / f"events_{match_id}.parquet"
+def j1_league_ingest():
+    """Process professional J1 League data from StatsBomb & Hudl"""
+    ingest_j1_league_matches()    # StatsBomb format
+    ingest_j1_league_events()     # Complex event data
+    ingest_j1_league_physical()   # HUDL tracking data
+    ingest_j1_league_mappings()   # CSV mapping files
 ```
-
-Events are the heart of football analytics. Each match produces a JSON file containing hundreds or thousands of events, each with rich metadata:
-- Event type (pass, shot, tackle, etc.)
-- Spatial coordinates (x, y positions)
-- Timestamps and possession information
-- Player and team details
-- Contextual information (pressure, technique, outcome)
 
 ## Key Design Decisions
 
-### 1. Pandas vs Polars [(Official Docs)](https://docs.pola.rs/user-guide/migration/pandas/)
+### 1. Hybrid Approach: Pandas + Polars
 
-When transitioning from Pandas to Polars, I noticed immediate improvements in speed and memory efficiency. Polars made large-scale file ingestion and transformation  faster.
+Rather than a simple migration from Pandas to Polars, I implemented a **hybrid approach** that leverages the strengths of both:
 
-However, my current implementation only leverages a portion of what Polars can offer. While I benefit from enhanced file I/O and straightforward transformations, I have yet to fully utilize Polars’ capabilities: lazy evaluation, parallel processing, streaming, and advanced expressions. Unlike Pandas, which processes each step eagerly and typically in a single thread, Polars can optimize entire transformation pipelines and execute them in parallel, resulting in significant performance gains, especially for complex or large-scale workflows.
+```python
+def create_dataframe_safely(data, target_schema: dict, logger=None):
+    try:
+        # 1. Pandas for JSON normalization (better nested structure handling)
+        df_pd = pd.json_normalize(data)
+        
+        # 2. Convert to Polars for performance and schema enforcement
+        df = pl.from_pandas(df_pd)
+        
+        # 3. Standardize column names (dots → underscores)
+        df = normalize_column_names(df)
+        
+        # 4. Apply schema with Polars' efficient type system
+        return apply_schema_flexibly(df, target_schema, logger)
+    except Exception as e:
+        # Fallback: Polars only processing with string inference
+        if logger:
+            logger.warning(f"Pandas failed: {e} | Attempting Polars fallback")
+        df = pl.DataFrame(data, infer_schema_length=0)
+        df = normalize_column_names(df)
+        return apply_schema_flexibly(df, target_schema, logger)
+```
 
-In summary, even limited use of Polars delivers substantial benefits over Pandas for large football analytics projects. As I continue to develop this pipeline, exploring Polars’ advanced features will be key to unlocking further scalability and efficiency.
+**Why this hybrid approach works:**
+- **Pandas** json_normalize – safest way to flatten StatsBomb’s tangled JSON. Dependable way to turn deeply nested columns into flat columns
+- **Polars** (after flatten) – much faster and lighter for all later filtering, joins, and Parquet work.
+
 
 
 ### 2. File Format: Parquet over JSON
@@ -146,14 +178,16 @@ Consistent naming is crucial for data discovery and automation:
 - **Matches**: `matches_{comp_id}_{season_id}.parquet`
 - **Lineups**: `lineups_{match_id}.parquet`
 - **360° Events**: `events_360_{match_id}.parquet`
+- **Physical**: `hudl_physical.parquet`
+- **Mappings**: `{type}_mapping.parquet`
 
 ### 4. Idempotent Operations
 
 The ingestion functions are designed to be idempotent AND intelligent - they only reprocess files when the source data has actually changed:
 
 ```python
-if parquet_path.exists() and not is_source_newer(json_file, parquet_path):
-    logger.debug(f"{parquet_path} already exists and source is not newer, skipping.")
+if output_path.exists() and not is_source_newer(json_file, output_path):
+    logger.info(f"{output_path} already exists and source is not newer, skipping.")
     continue
 ```
 
@@ -167,116 +201,137 @@ def is_source_newer(source_path: Path, output_path: Path) -> bool:
 
 This ensures the pipeline can be safely re-run for incremental updates or error recovery.
 
+### 5. Enhanced Error Handling
 
-### 5. Error Handling
-
-Robust error handling prevents pipeline failures, an example from ingesting events:
+The pipeline implements **multi-layered error recovery**:
 
 ```python
-try:
-    with open(json_file, "r") as f:
-        data = json.load(f)
-    if data:
-        df = pl.DataFrame(data)
-        df.write_parquet(events_path)
-        logger.info(f"Saved events for match {match_id} to {events_path}")
-        processed_count += 1
-    else:
-        logger.info(f"No events found for match {match_id}")
-except json.JSONDecodeError as e:
-    logger.warning(f"Could not decode JSON for match {match_id}: {e}")
-except Exception as e:
-    logger.warning(f"Error processing events for match {match_id}: {e}")
+def create_dataframe_safely(data, target_schema: dict, logger=None):
+    try:
+        # Primary: Pandas json_normalize + Polars processing
+        df_pd = pd.json_normalize(data)
+        df = pl.from_pandas(df_pd)
+        df = normalize_column_names(df)
+        return apply_schema_flexibly(df, target_schema, logger)
+    except Exception as e:
+        # Fallback: Polars-only processing with string inference
+        if logger:
+            logger.warning(f"Pandas failed: {e} | Attempting Polars fallback")
+        df = pl.DataFrame(data, infer_schema_length=0)
+        df = normalize_column_names(df)
+        return apply_schema_flexibly(df, target_schema, logger)
 ```
 
-## Data Volume and Performance
+This approach ensures **robust data processing** even with malformed or unexpected JSON structures, while providing clear logging for debugging.
 
-The Bronze layer handles substantial data volumes:
+## Schema Standardization Challenge
 
-| Metric            | Value                                   |
-|-------------------|-----------------------------------------|
-| Raw JSON files    | 12.6 GB (2,200 matches, 300 KB–4 MB each) |
-| Total events      | ~7–8 million rows                       |
-| Bronze Parquet    | 1.53 GB (~90% compression)              |
-| Performance gain  | 2x faster with Polars vs Pandas         |
+**The Problem:**
+- Pandas `json_normalize` creates: `'home_team.home_team_name'` (dots)
+- Polars schemas expect: `'home_team_home_team_name'` (underscores)
+- Result: Schema mismatches causing data loss and null values
 
+**The Solution:**
+```python
+def normalize_column_names(df: pl.DataFrame) -> pl.DataFrame:
+    """Convert dot notation to underscore notation for consistent schema application."""
+    rename_map = {col: col.replace('.', '_') for col in df.columns}
+    return df.rename(rename_map)
+```
 
-When I first started, I cloned the StatsBomb open data repo locally and worked with those files. At some point, I decided to “upgrade” and pull everything directly from the StatsBomb API, thinking it would keep my data always up-to-date. But in practice, this was a pain because downloads were *so* slow, and it didn’t actually add much value for a historical analytics project. So I switched back to using local files, which turned out to be much faster and more reliable. Lesson learned: for most projects, local raw files are plenty good, and much easier to work with.
+## Data Volume & Performance Snapshot
+
+| Metric                        | Open-Data (community) | J1 League (pro) | Combined |
+|-------------------------------|----------------------:|----------------:|---------:|
+| Raw landing size (JSON/CSV)   | **12.62 GB**          | **1.78 GB**     | 14.40 GB |
+| Bronze size (Snappy Parquet)  | **1.64 GB**           | **4.8 MB**      | 1.64 GB* |
+| Compression vs. raw           | ~ **-87 %**           | ~ **-99.7 %**   | ~ -89 % |
+| Event rows                    | ≈ 7 M                | ≈ 1.2 M         | ≈ 8.2 M |
+| HUDL physical rows            | —                    | ≈ 1.06 M        | ≈ 1.06 M |
+
+\* J1 League’s Bronze footprint rounds to zero at GB scale.
+
+**Key take-aways**
+
+- **Hybrid flow:** `pandas.json_normalize` for the initial flatten → Polars for Parquet writes and all downstream transforms.  
+- **Speed:** Post-flatten transforms run ~2× faster in Polars than in pure pandas, with lower RAM usage.  
+- **Storage:** Columnar Snappy Parquet cuts raw size by 87–99 %, keeping a 14 GB landing zone to ~1.6 GB on disk.  
+- **Incremental runs:** If no files changed, Bronze refresh completes in seconds thanks to the source-timestamp check.
+
 
 ## Logging and Monitoring
 
 Comprehensive logging ensures visibility into the ingestion process:
 
 ```python
+# Open Data logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler("logs/bronze/pipeline.log", mode="w"),
+        logging.FileHandler("logs/bronze/bronze_open_data.log", mode="w"),
         logging.StreamHandler()
     ]
 )
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
+# J1 League logging
+logger = setup_logger("logs/bronze/j1_league_bronze.log", "j1_league_bronze")
 ```
 
 The logging captures:
-- File processing status
+- File processing status and progress
 - Data validation results
-- Error conditions and recovery
-- Performance metrics
+- Error conditions and recovery attempts
+- Performance metrics and timing
+- Schema application warnings
 
 ## Benefits of This Approach
 
-### 1. Scalability
-The modular design allows easy addition of new data sources or competitions without modifying existing code.
+### 1. Multi-Source Scalability
+The modular design allows easy addition of new data sources (HUDL, Opta, etc.) without modifying existing code, demonstrated by the seamless integration of J1 League data alongside StatsBomb.
 
-### 2. Data Quality
-Parquet format enforces schema consistency and prevents data corruption during storage.
+### 2. Data Quality Assurance
+- Parquet format enforces schema consistency
+- Hybrid processing handles malformed data gracefully
+- Column name standardization prevents downstream errors
 
 ### 3. Query Performance
-Columnar storage enables fast analytical queries, even on large datasets.
+Columnar storage enables fast analytical queries, even on datasets with millions of events.
 
 ### 4. Maintainability
-Clear separation of concerns makes the pipeline easy to debug and extend.
+- Clear separation of concerns between data sources
+- Shared utilities for common operations
+- Comprehensive error handling and logging
 
 ### 5. Reproducibility
-Idempotent operations ensure consistent results across multiple runs.
+Idempotent operations ensure consistent results across multiple runs while supporting incremental updates.
 
-## What I’d Do Differently (Lessons Learned)
-### Don’t Overcomplicate Data Sources
+## Lessons Learned
 
-I wasted time switching to the StatsBomb API, thinking I needed “live” data. But for most football analytics projects, cloning the open-data repo locally is simpler, faster, and good enough - especially for reproducible research and data that isn't real time.
-
-### Optimize for Performance Early
-
-My first Bronze layer was built in Pandas, but large-scale JSON parsing and Parquet writes were slow. Moving to Polars halved the runtime and made batch processing much smoother.
+### Keep It Simple On Purpose
+At the start I felt inclined to pull data straight from every API and to automate “everything.”
+That quickly turned into long waits, flaky downloads, and wasted evenings debugging endpoints I didn’t even need.
+Next time: clone the public repo first, get a small slice working end-to-end, and only add new sources when a real question demands it.
 
 ### Work on Data You Actually Care About
-One of the biggest advantages was working with football data - a subject I genuinely love. It made the technical learning curve feel less intimidating, kept me motivated, and made the process much more fun. If you’re building your own projects, try to pick data you’re passionate about; it really does make a huge difference.
+One of the biggest advantages was working with football data - something I genuinely love. It made the technical learning curve feel less intimidating, kept me motivated, and made the process much more fun. If you’re building your own projects, try to pick data you’re passionate about; it really does make a huge difference.
+
+### Importance Of a Strong Foundation
+Once open-data was running smoothly, I added the free J1 League + HUDL physical dataset to see how the pipeline would handle a second source. That quick test showed me the gaps: my folder layout was ad-hoc, helper code was duplicated, and naming wasn’t consistent. I paused, reorganised the directory structure, and pulled common logic into reusable functions. With those basics in place, adding new files is straightforward instead of confusing. Small reminder to myself: spend a little time on the groundwork before the next data drop arrives.
 
 ## Next Steps: Silver Layer
 
 The Bronze layer provides the foundation, but the real value comes in the Silver layer where we:
 
-- Flatten nested JSON structures
+- Process complex event data with event-type-specific schemas
 - Add derived features and calculations
-- Implement data validation and quality checks
+- Implement advanced data validation and quality checks
 - Create standardized schemas for downstream consumption
-
-## Conclusion
-
-Building a robust Bronze layer is the first step toward advanced football analytics. By focusing on data quality, performance, and maintainability, we create a solid foundation that supports sophisticated analysis and machine learning models.
-
-The key is to treat data ingestion as a first-class engineering problem, not just a preprocessing step. With proper architecture and tooling, you can handle the complexity of football data while maintaining the flexibility to adapt to new requirements and data sources.
-
-In the next post, I'll dive into the Silver layer, where we transform this raw data into analysis-ready features and implement the data quality controls that make advanced analytics possible.
+- Handle the extreme variability in event data structures
 
 ---
 
 ## Feedback
-I’d love to hear your thoughts: questions, suggestions, or feedback on this pipeline (or football analytics in general) are all welcome!
+I'd love to hear your thoughts: questions, suggestions, or feedback on this pipeline (or football analytics in general) are all welcome!
 
-
-
-*This Bronze layer processes StatsBomb data covering multiple competitions including the Champions League, Premier League, Bundesliga, and international tournaments, providing a comprehensive foundation for football analytics.* 
+*This Bronze layer processes StatsBomb data covering multiple competitions including the Champions League, Premier League, Bundesliga, and international tournaments, plus J1 League data with HUDL tracking, providing a comprehensive foundation for multi-source football analytics.* 
