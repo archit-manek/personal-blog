@@ -7,7 +7,7 @@ tags = ['python', 'polars', 'pandas', 'data-pipeline', 'statsbomb', 'medallion-a
 comments = true
 +++
 
-*Last Updated: 18th July, 2025*
+*Last Updated: 20th July, 2025*
 
 ## Contents
 - [Why I'm Building This](#why-im-building-this)
