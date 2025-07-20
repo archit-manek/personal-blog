@@ -7,6 +7,8 @@ tags = ['python', 'polars', 'pandas', 'data-pipeline', 'statsbomb', 'medallion-a
 comments = true
 +++
 
+*Last Updated: 18th July, 2025*
+
 ## Contents
 - [Why I'm Building This](#why-im-building-this)
 - [The Challenge: Heterogeneous Football Data](#the-challenge-heterogeneous-football-data)
@@ -31,7 +33,7 @@ comments = true
 
 ## Why I'm Building This
 
-I love football. After years of watching, debating tactics, and obsessing over matches, I wanted to go deeper - not just as a fan, but as someone who can analyze the game with real data. For me, learning data engineering and machine learning *through* football made the technical learning curve way less intimidating and a lot more fun. This project was also my way of scratching that itch: whether it's analyzing tactics, understanding player performance, or exploring questions around injury prevention.
+I love football. After years of watching, debating tactics, and obsessing over matches, I wanted to go deeper - not just as a fan, but as someone who can analyze the game with real data. For me, learning data engineering and machine learning *through* football made the technical learning curve less intimidating and a lot more fun. This project was also my way of scratching that itch: whether it's analyzing tactics, understanding player performance, finding hidden talent, or exploring questions around injury prevention.
 
 I set out to build a robust data pipeline for football analytics, from ingesting raw multi-source data to producing efficient, clean, structured datasets for analysis and modeling. My goal was to create a system flexible enough to support any question from tactics to scouting to performance analysis, while handling the complexity of multiple data vendors and formats.
 
@@ -40,9 +42,12 @@ In football analytics, data quality is everything. Before you can build sophisti
 *A quick note for the uninitiated:*
 A [medallion architecture](https://www.databricks.com/glossary/medallion-architecture) is a data design pattern for logically organizing data into layers (Bronze, Silver, Gold), each building on the last.
 
+<!-- ![Medallion Architecture - Bronze Layer Highlighted](/bronze_layer.png) -->
+{{< figure src="/bronze_layer.png" title="Medallion Architecture" width="500px" >}}
+
 Honestly, I first explored the medallion architecture because I had a job interview at a finance company that used it, so it seemed like a practical way to learn something relevant. But as I started working with it, I quickly saw how well it fit the challenges of structuring football data. The medallion approach naturally enforces a clean separation between raw, intermediate, and analysis ready datasets, which makes the pipeline easier to maintain, test, and extend. My main priority was to learn by building, get something working quickly, and iterate from there. So far, benefits like clear data lineage, easier debugging, and flexibility to add new sources have made it a great fit for my goals. I'm always open to changing the approach if the project's needs evolve, but the medallion pattern has proven both practical and scalable for this work.
 
-In this post, I'll walk through how I built a comprehensive Bronze layer for multi-source football data, handling everything from StatsBomb community data to professional J1 League data with HUDL tracking, demonstrating how to manage heterogeneous data sources within a unified pipeline.
+In this post, I'll walk through how I built a comprehensive Bronze layer for multi-source football data, handling everything from StatsBomb community data to professional J1 League data with HUDL physical metrics, demonstrating how to manage heterogeneous data sources within a unified pipeline.
 
 ## The Challenge: Heterogeneous Football Data
 
@@ -79,7 +84,7 @@ data/
         └── 360_events/
 ```
 
-**2. J1 League (Multi-Source Professional Data)**
+**2. J1 League (StatsBomb + HUDL)**
 ```bash
 data/
 ├── landing/
@@ -246,9 +251,7 @@ def normalize_column_names(df: pl.DataFrame) -> pl.DataFrame:
 | Event rows                    | ≈ 7 M                | ≈ 1.2 M         | ≈ 8.2 M |
 | HUDL physical rows            | —                    | ≈ 1.06 M        | ≈ 1.06 M |
 
-\* J1 League’s Bronze footprint rounds to zero at GB scale.
-
-**Key take-aways**
+**Key takeaways:**
 
 - **Hybrid flow:** `pandas.json_normalize` for the initial flatten → Polars for Parquet writes and all downstream transforms.  
 - **Speed:** Post-flatten transforms run ~2× faster in Polars than in pure pandas, with lower RAM usage.  
