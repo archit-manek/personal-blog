@@ -193,20 +193,16 @@ This ensures the pipeline can be safely re-run for incremental updates or error 
 The pipeline implements **multi-layered error recovery**:
 
 ```python
-def create_dataframe_safely(data, target_schema: dict, logger=None):
     try:
-        # Primary: Pandas json_normalize + Polars processing
-        df_pd = pd.json_normalize(data)
-        df = pl.from_pandas(df_pd)
-        df = normalize_column_names(df)
-        return apply_schema_flexibly(df, target_schema, logger)
+        # Processing data
+    except json.JSONDecodeError as e:
+        logger.error(f"Could not decode competitions JSON: {e}")
+        # To propagate errors to ingest function
+        raise
     except Exception as e:
-        # Fallback: Polars-only processing with string inference
-        if logger:
-            logger.warning(f"Pandas failed: {e} | Attempting Polars fallback")
-        df = pl.DataFrame(data, infer_schema_length=0)
-        df = normalize_column_names(df)
-        return apply_schema_flexibly(df, target_schema, logger)
+        logger.error(f"Error processing competitions data: {e}")
+        # To propagate errors to ingest function
+        raise
 ```
 
 This approach ensures **robust data processing** even with malformed or unexpected JSON structures, while providing clear logging for debugging.
@@ -228,13 +224,17 @@ def normalize_column_names(df: pl.DataFrame) -> pl.DataFrame:
 
 ## Data Volume & Performance Snapshot
 
-| Metric                        | Open-Data (community) | J1 League (pro) | Combined |
-|-------------------------------|----------------------:|----------------:|---------:|
-| Raw landing size (JSON/CSV)   | **12.62 GB**          | **1.78 GB**     | 14.40 GB |
-| Bronze size (Snappy Parquet)  | **1.64 GB**           | **4.8 MB**      | 1.64 GB* |
-| Compression vs. raw           | ~ **-87 %**           | ~ **-99.7 %**   | ~ -89 % |
-| Event rows                    | ≈ 7 M                | ≈ 1.2 M         | ≈ 8.2 M |
-| HUDL physical rows            | —                    | ≈ 1.06 M        | ≈ 1.06 M |
+| Metric                        | Open-Data |     J1 League     | Combined* |
+|-------------------------------|----------------------:|:-----------------------:|-----------------------:|
+| Raw landing size (JSON/CSV)   | **12.62 GB**          |    **1.78 GB**          | **14.40 GB**           |
+| Bronze size (Snappy Parquet)  | **1.89 GB**           |   **167.1 MB**          | **2.06 GB\***          |
+| Compression vs. raw           | ~ **87% saved**     | ~ **99.7% saved**     | ~ **89% saved**      |
+| Event rows                    | ≈ 7 M                 | ≈ 1.2 M                 | ≈ 8.2 M                |
+| HUDL physical rows            | —                     | ≈ 1.06 M                | ≈ 1.06 M               |
+
+\*Sum of both datasets.
+
+
 
 **Key takeaways:**
 
@@ -273,7 +273,7 @@ The logging captures:
 The modular design allows easy addition of new data sources (HUDL, Opta, etc.) without modifying existing code, demonstrated by the seamless integration of J1 League data alongside StatsBomb.
 
 ### 2. Data Quality Assurance
-- Parquet format enforces schema consistency
+- Parquet format can enforce schema consistency
 - Hybrid processing handles malformed data gracefully
 - Column name standardization prevents downstream errors
 
