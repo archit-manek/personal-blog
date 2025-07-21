@@ -47,25 +47,25 @@ A [medallion architecture](https://www.databricks.com/glossary/medallion-archite
 
 Honestly, I first explored the medallion architecture because I had a job interview at a finance company that used it, so it seemed like a practical way to learn something relevant. But as I started working with it, I quickly saw how well it fit the challenges of structuring football data. The medallion approach naturally enforces a clean separation between raw, intermediate, and analysis ready datasets, which makes the pipeline easier to maintain, test, and extend. My main priority was to learn by building, get something working quickly, and iterate from there. So far, benefits like clear data lineage, easier debugging, and flexibility to add new sources have made it a great fit for my goals. I'm always open to changing the approach if the project's needs evolve, but the medallion pattern has proven both practical and scalable for this work.
 
-In this post, I'll walk through how I built a comprehensive Bronze layer for multi-source football data, handling everything from StatsBomb community data to professional J1 League data with HUDL physical metrics, demonstrating how to manage heterogeneous data sources within a unified pipeline.
+In this post, I'll walk through how I built a comprehensive Bronze layer for multi-source football data, handling everything from StatsBomb open data to professional J1 League data with HUDL physical metrics, demonstrating how to manage heterogeneous data sources within a unified pipeline.
 
 ## The Challenge: Heterogeneous Football Data
 
 Football data is notoriously complex. Unlike traditional business data, football analytics requires handling:
 
-- **Multi-dimensional events**: Every event (pass, shot, etc.) includes spatial (x, y) coordinates, timestamps, and rich contextual info
-- **Nested JSON structures**: StatsBomb's rich data format includes deeply nested objects for players, teams, tactics, and event details
-- **Large-scale data**: A single match can contain thousands of events, and we're processing thousands of matches across multiple competitions
-- **Multiple data sources**: StatsBomb, HUDL, CSV mappings - each with different formats and schemas
-- **360° tracking data**: Positional data for all 22 players plus the ball, captured at key events (not continuous tracking)
-- **Temporal relationships**: Events are chronologically ordered, but analysts often need to group or aggregate them (using the possession field, etc.) to reconstruct possessions, phases of play, or other temporal sequences for deeper analysis
-- **Schema variability**: Different event types can have 25-47 columns each, creating extreme variability within datasets
+- **Multi-dimensional event data**: Each event (e.g., pass, shot) includes spatial coordinates (x, y), timestamps, and rich contextual information.
+- **Nested JSON structures**: The StatsBomb data format contains deeply nested objects representing players, teams, tactics, and detailed event attributes.
+- **Large-scale data**: Individual matches can generate thousands of events, and the pipeline processes thousands of matches across multiple competitions.
+- **Multiple data sources**: Data comes from StatsBomb, HUDL, and CSV mapping files - each with different formats and schemas.
+- **360° tracking data**: Positional data for all 22 players plus the ball is captured at key events (not continuous tracking).
+- **Temporal relationships**: Events are chronologically ordered but require grouping and aggregation (e.g., by possession) to reconstruct phases of play or sequences for advanced analysis.
+- **Schema variability**: Event records contain between 25 to 47 columns depending on the event type, leading to significant schema variability within the dataset.
 
 ## Architecture Overview
 
 The pipeline handles **two distinct data sources** with different characteristics, demonstrating how to manage heterogeneous data within a unified medallion architecture:
 
-**1. Open Data (StatsBomb Community Data)**
+**1. Open Data (StatsBomb Open Data)**
 ```bash
 data/
 ├── landing/
