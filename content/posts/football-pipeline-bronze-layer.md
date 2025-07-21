@@ -135,26 +135,11 @@ def j1_league_ingest():
 Rather than a simple migration from Pandas to Polars, I implemented a **hybrid approach** that leverages the strengths of both:
 
 ```python
-def create_dataframe_safely(data, target_schema: dict, logger=None):
     try:
-        # 1. Pandas for JSON normalization (better nested structure handling)
         df_pd = pd.json_normalize(data)
-        
-        # 2. Convert to Polars for performance and schema enforcement
         df = pl.from_pandas(df_pd)
-        
-        # 3. Standardize column names (dots → underscores)
-        df = normalize_column_names(df)
-        
-        # 4. Apply schema with Polars' efficient type system
-        return apply_schema_flexibly(df, target_schema, logger)
-    except Exception as e:
-        # Fallback: Polars only processing with string inference
-        if logger:
-            logger.warning(f"Pandas failed: {e} | Attempting Polars fallback")
-        df = pl.DataFrame(data, infer_schema_length=0)
-        df = normalize_column_names(df)
-        return apply_schema_flexibly(df, target_schema, logger)
+        # Basic column name standardization (dots to underscores)
+        df = df.rename({col: col.replace('.', '_') for col in df.columns})
 ```
 
 **Why this hybrid approach works:**
