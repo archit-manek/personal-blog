@@ -1,4 +1,8 @@
 {{- /* Head custom content area start */ -}}
 {{- /*     Insert any custom code (web-analytics, resources, etc.) - it will appear in the <head></head> section of every page. */ -}}
 {{- /*     Can be overwritten by partial with the same name in the global layouts. */ -}}
+
+<!-- Force favicon reload with cache busting -->
+<link rel="icon" type="image/png" href="/favicon-64x64.png?v={{ now.Unix }}">
+
 {{- /* Head custom content area end */ -}} 

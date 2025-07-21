@@ -5,7 +5,7 @@ theme = "PaperMod"
 
 [params]
   env = "production"
-  homeInfoParams = { Title = "Football ML", Content = "Exploring football through the lens of machine learning, AI, and data." }
+  homeInfoParams = { Title = "The Football Model", Content = "Reimagining football through data and machine learning." }
 
   # Social Icons
   socialIcons = [
@@ -14,6 +14,16 @@ theme = "PaperMod"
     { name = "linkedin", url = "https://www.linkedin.com/in/architmanek/" },
     { name = "substack", url = "https://architmanek.substack.com/" }
   ]
+
+  # Favicon Configuration
+  [params.assets]
+    favicon = "favicon-64x64.png"
+    favicon16x16 = "favicon-16x16.png"
+    favicon32x32 = "favicon-32x32.png"
+    favicon48x48 = "favicon-48x48.png"
+    favicon64x64 = "favicon-64x64.png"
+    apple_touch_icon = "apple-touch-icon.png"
+
 
   # Giscus Comments Configuration
   [params.giscus]
