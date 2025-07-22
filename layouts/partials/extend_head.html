@@ -5,4 +5,27 @@
 <!-- Force favicon reload with cache busting -->
 <link rel="icon" type="image/png" href="/favicon-64x64.png?v={{ now.Unix }}">
 
+<!-- Mobile sticky header fix -->
+<style>
+@media screen and (max-width: 768px) {
+    .main {
+        padding-top: 120px !important;
+    }
+    
+    .page-header {
+        margin-top: 20px !important;
+    }
+    
+    .post-entry {
+        margin-top: 20px !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .main {
+        padding-top: 110px !important;
+    }
+}
+</style>
+
 {{- /* Head custom content area end */ -}} 

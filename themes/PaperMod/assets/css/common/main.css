@@ -7,6 +7,34 @@
     padding-top: calc(var(--header-height) + var(--gap));
 }
 
+/* Mobile-specific fixes for sticky header */
+@media screen and (max-width: 768px) {
+    .main {
+        padding-top: 120px !important;
+    }
+    
+    body {
+        padding-top: 0 !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .main {
+        padding-top: 110px !important;
+    }
+}
+
+/* Force proper spacing for all content */
+@media screen and (max-width: 768px) {
+    .page-header {
+        margin-top: 20px !important;
+    }
+    
+    .post-entry {
+        margin-top: 20px !important;
+    }
+}
+
 .page-header h1 {
     font-size: 40px;
 }
