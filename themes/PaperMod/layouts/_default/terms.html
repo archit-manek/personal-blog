@@ -13,7 +13,7 @@
 
 <ul class="terms-tags">
     {{- $type := .Type }}
-    {{- range $key, $value := .Data.Terms.Alphabetical }}
+    {{- range $key, $value := .Data.Terms.ByCount }}
     {{- $name := .Name }}
     {{- $count := .Count }}
     {{- with site.GetPage (printf "/%s/%s" $type $name) }}
