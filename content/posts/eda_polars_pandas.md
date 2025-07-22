@@ -184,12 +184,15 @@ What’s happening here:
 
 ## Key Takeaways
 
-* Pandas remains the best choice for small-to-medium data or for final, presentation-ready transformations.
+* Pandas remains the ~~best~~ default* choice largely thanks to its ecosystem (viz libs, scikit-learn, Excel) and presentation-ready APIs
 * Polars is my go-to for wide, multi-file, or messy football event data. Its speed and schema flexibility turn previously frustrating workflows into straightforward, interactive analysis.
 * What stood out to me is how similar Polars feels to SQL in both syntax and mental model, and how efficiently it manages memory by only materializing data when needed. This design makes complex queries and large-scale data exploration feel intuitive and fast, even on a laptop.
 
 
 ---
+
+> ***Update (July 22, 2025):**
+> After helpful feedback on [this X thread](https://x.com/archit_manek/status/1947701641328947709), I updated this post to clarify: Polars matches or exceeds Pandas’ performance even on small datasets. My original comment was about ecosystem defaults, not technical limits.
 
 ## Feedback
 
