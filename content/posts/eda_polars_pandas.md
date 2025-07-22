@@ -16,6 +16,7 @@ tags = [
     'parquet',
     'performance'
 ]
+summary = "Polars loads and analyzes 12M rows of football event data over 10× faster and with half the RAM of Pandas. Includes hands-on code and real hardware benchmarks."
 comments = true
 +++
 

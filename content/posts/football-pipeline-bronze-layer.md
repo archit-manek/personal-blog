@@ -4,6 +4,8 @@ draft = false
 title = 'Football Data Pipeline: Bronze Layer'
 categories = ['Data Engineering', 'Football Analytics']
 tags = ['python', 'polars', 'pandas', 'data-pipeline', 'statsbomb', 'medallion-architecture', 'parquet', 'football']
+summary = "My approach to turning messy football event data into clean, structured Bronze tables. Making large-scale, multi-source analytics possible."
+
 comments = true
 +++
 
