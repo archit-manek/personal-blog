@@ -47,13 +47,6 @@ theme = "PaperMod"
   weight = 10
   identifier = "home"
 
-  # Resume page
-[[menu.main]]
-  name = "Resume"
-  url = "/Resume_July_2025.pdf"
-  weight = 20
-  identifier = "resume"
-
   # Archive page
 [[menu.main]]
   name = "Archive"
