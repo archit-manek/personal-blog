@@ -5,7 +5,10 @@ theme = "PaperMod"
 
 [params]
   env = "production"
-  
+  [params.homeInfoParams]
+    Title = ""
+    Content = ""
+    
   # Social Icons
   socialIcons = [
     { name = "github", url = "https://github.com/archit-manek" },
