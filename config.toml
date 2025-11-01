@@ -5,12 +5,14 @@ theme = "PaperMod"
 
 [params]
   env = "production"
-  homeInfoParams = { Title = "", Content = "" }
+  customCSS = ["css/extended/custom.css"]
+  homeInfoParams = { Title = "" }
 
   # Social Icons
   socialIcons = [
     { name = "github", url = "https://github.com/archit-manek" },
-    { name = "x", url = "https://x.com/archit_manek" }
+    { name = "x", url = "https://x.com/archit_manek" },
+    { name = "bluesky", url = "https://bsky.app/profile/architmanek.bsky.social" }
   ]
 
   # Favicon Configuration
