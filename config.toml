@@ -6,7 +6,11 @@ theme = "PaperMod"
 [params]
   env = "production"
   customCSS = ["css/extended/custom.css"]
-  homeInfoParams = { Title = "" }
+
+  [params.homeInfoParams]
+    Title = "Welcome to my blog 👋🏼"
+    Content = """Notes from my ongoing experiments with AI, data, and curiosity — a record of what I’m learning, breaking, and occasionally understanding.
+    """
 
   # Social Icons
   socialIcons = [

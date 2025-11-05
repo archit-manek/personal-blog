@@ -3,20 +3,3 @@ This is just a placeholder blank stylesheet so as to support adding custom style
 
 Read https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#bundling-custom-css-with-themes-assets for more info
 */
-
-.home-info {
-  margin-top: 1.5rem !important;
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
-}
-
-/* keep icons close to the title */
-.home-info .social-icons {
-  margin-top: 0.5rem !important;
-}
-
-/* ensure main content itself isn't crushed */
-main.main {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-}
